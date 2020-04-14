@@ -1,7 +1,23 @@
-let targetDistance = 0.123;
-let max_difference = 0.02;
+let targetDistance = 0;
+let predictedDistance = -1;
+let max_difference = 0.10;
 
-init();
+$(document).ready(function(){
+    init();
+
+    const socket = io();
+
+    socket.on('connect', () => {
+
+        socket.on('data', msg => {
+            targetDistance = msg.reading.toFixed(3);
+            $('#target-distance').text(targetDistance + 'm');
+            evalDistance();
+        });
+
+    });
+
+});
 
 function init(){
     $('#target-distance').text(targetDistance + 'm');
@@ -33,11 +49,17 @@ $('#get-distance').on('click', function(){
     let initialVelocity = $('#initial-velocity').val();
 
     getPredictedDistance(projectileArea, projectileMass, fluidDensity, dragConstant, initialVelocity, function(distance){
-        $('#predicted-distance').text(Math.round(distance*1000)/1000 + 'm');
+        predictedDistance = distance;
+        $('#predicted-distance').text(predictedDistance.toFixed(3) + 'm');
+        evalDistance();
+    });
+});
 
+function evalDistance(){
+    if(predictedDistance > 0){
         let evaluation = 'Ready to launch';
         let color = '#00E676';
-        let difference = distance - targetDistance;
+        let difference = predictedDistance - targetDistance;
 
         if(difference < -max_difference){
             evaluation = 'Move the target closer';
@@ -51,6 +73,19 @@ $('#get-distance').on('click', function(){
 
         $('#distance-evaluation').text(evaluation);
 
-        $('#distance-container').animate({'backgroundColor': color});
-    });
+        $('#distance-container').animate({'backgroundColor': color}, 100);
+    }
+}
+
+$('.form-group label i').on({
+    mouseenter: function(){
+        let parentId = $(this).parent().parent().attr('id');
+
+        $('#' + parentId + ' .info').show(200);
+    },
+    mouseleave: function(){
+        let parentId = $(this).parent().parent().attr('id');
+
+        $('#' + parentId + ' .info').hide(200);
+    }
 });

@@ -6,11 +6,13 @@
 # Import local classes
 import motion
 import uds
+import coil_circuit
+import ir_pair
 
 import mysql.connector
 import threading
 import json
-#import RPi.GPIO as GPIO
+import RPi.GPIO as GPIO
 
 from flask import Flask, render_template, request
 from flask_socketio import SocketIO, emit
@@ -42,17 +44,40 @@ PIN_ECHO = 0 # GPIO pin connected to the sensor's echo sensor
 PIN_TRIG = 0 # GPIO pin connected to the sensor's pulse trigger
 distance_sensor = uds.DistanceSensor(PIN_ECHO, PIN_TRIG) # Initialize the distance sensor with these pins
 
+# Initialize the coil circuit
+PIN_COIL_1 = 0
+PIN_COIL_2 = 0
+PULSE_TIME_1 = 0.1
+PULSE_TIME_2 = 0.01
+coils = coil_circuit.Coils(PIN_COIL_1, PIN_COIL_2, PULSE_TIME_1, PULSE_TIME_2)
+
+# Set up the IR emitter/reciever pairs
+PIN_EMITTER_1 = 0
+PIN_RECIEVER_1 = 0
+ir_pair_1 = ir_pair.IRPair(PIN_EMITTER_1, PIN_RECIEVER_1)
+
+PIN_EMITTER_2 = 0
+PIN_RECIEVER_2 = 0
+ir_pair_2 = ir_pair.IRPair(PIN_EMITTER_2, PIN_RECIEVER_2)
 
 # Set up GPIO header board to connect circuits
-#GPIO.setmode(GPIO.BCM)
-#GPIO.setwarnings(False)
+GPIO.setmode(GPIO.BOARD)
+GPIO.setwarnings(False)
 
 # Set up GPIO input ports
-#GPIO.setup(PIN_ECHO, GPIO.IN)
+GPIO.setup(PIN_ECHO, GPIO.IN)
+GPIO.setup(PIN_RECIEVER_1, GPIO.IN)
+GPIO.setup(PIN_RECIEVER_2, GPIO.IN)
 
 # Set up GPIO output ports
-#GPIO.setup(PIN_TRIG, GPIO.OUT)
+GPIO.setup(PIN_TRIG, GPIO.OUT)
+GPIO.setup(PIN_COIL_1, GPIO.OUT)
+GPIO.setup(PIN_COIL_2, GPIO.OUT)
+GPIO.setup(PIN_EMITTER_1, GPIO.OUT)
+GPIO.setup(PIN_EMITTER_2, GPIO.OUT)
 
+# Make sure UDS trigger is set to low by default
+GPIO.output(PIN_TRIG, GPIO.LOW)
 
 # Render base template for user interface
 @app.route('/', methods=['GET'])
@@ -98,6 +123,7 @@ def get_distance():
         return json.dumps(0)
 
 
+# Save a user-entered data profile for future use
 @app.route('/save-data', methods=['POST'])
 def save_projectile_data():
     # Get the user-entered form data to save
@@ -131,6 +157,36 @@ def save_projectile_data():
         return json.dumps({'id': id})
 
     return json.dumps({'id': None})
+
+
+# Trigger the coilgun from the user interface
+@app.route('/trigger', methods=['POST'])
+def trigger_coils():
+    # Turn on the IR LEDs
+    ir_pair_1.on()
+    ir_pair_2.on()
+
+    # Wait for the first coil to be pulsed
+    pulsed = False
+    while not pulsed:
+
+        # Once the IR pair has been obstructed by the projectile, trigger the coil
+        if ir_pair_1.reciever_covered():
+            # Pulse current through the coil briefly
+            coils.pulse_coil(0)
+            pulsed = True
+
+    # Wait for the second coil to be pulsed
+    pulsed = False
+    while not pulsed:
+
+        if ir_pair_2.reciever_covered():
+            # Pulse current through the second coil briefly
+            coils.pulse_coil(1)
+            pulsed = True
+
+    # Send "ok" message to frontend
+    return json.dumps({'ok': True})
 
 
 # Send continuous stream of readings to the user interface via WebSockets

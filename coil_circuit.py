@@ -6,9 +6,9 @@ import RPi.GPIO as GPIO
 class Coils:
 
     # Initialize with the GPIO pins connected to the coil 1 and 2 circuit loops
-    def __init__(self, pin_coil_1, pin_coil_2):
+    def __init__(self, pin_coil_1, pin_coil_2, pulse_time_1, pulse_time_2):
         self.PINS = [pin_coil_1, pin_coil_2] # An array storing the pins of both coils
-        self.PULSE_TIME = 0.1 # Set a pulse time - this must be low enough to prevent a restoring force on the projectile and prevent the resistors from overheating
+        self.PULSE_TIMES = [pulse_time_1, pulse_time_2] # Set a pulse time - this must be low enough to prevent a restoring force on the projectile and prevent the resistors from overheating
 
 
     # Send a very brief HIGH pulse to send current through a coil and generate a magnetic field

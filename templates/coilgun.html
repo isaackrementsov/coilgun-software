@@ -35,15 +35,30 @@
                     </div>
                 </div>
                 <div class="row buttons">
-                    <button class="launch cta inactive">Launch</button>
+                    <button class="launch cta inactive" id="trigger">Launch</button>
                 </div>
             </div>
             <div class="col-sm-2">
                 <div class="card projectile-data text-center">
                     <h2>Launch Data</h2>
-                    <select>
+                    <select id="profile-select">
                         <option value="" selected disabled>Select Saved</option>
+                        {% for projectile in data_profiles %}
+                            <option value="projectile-{{projectile[0]}}">{{projectile[6]}}</option>
+                        {% endfor %}
                     </select>
+                    <div id="hidden-data" style="display: none">
+                        {% for projectile in data_profiles %}
+                            <div id="projectile-{{projectile[0]}}">
+                                <input type="hidden" class="projectile-area" value="{{projectile[1]}}">
+                                <input type="hidden" class="projectile-mass" value="{{projectile[2]}}">
+                                <input type="hidden" class="fluid-density" value="{{projectile[3]}}">
+                                <input type="hidden" class="drag-constant" value="{{projectile[4]}}">
+                                <input type="hidden" class="initial-velocity" value="{{projectile[5]}}">
+                                <input type="hidden" class="name" value="{{projectile[6]}}">
+                            </div>
+                        {% endfor %}
+                    </div>
                     <div class="row form-row">
                         <div class="col-sm-4">
                             <div class="form-group" id="area">
@@ -79,7 +94,11 @@
                     </div>
                     <div class="row buttons">
                         <button type="button" class="cta" id="get-distance">Predict Distance</button>
-                        <button type="button">Save Data</button>
+                        <button type="button" id="save-data">Save Data</button>
+                        <div id="name" style="display: none">
+                            <input type="text" id="name-input" placeholder="Profile name">
+                            <button id="submit"><i class="fas fa-check"></i></button>
+                        </div>
                     </div>
                 </div>
             </div>

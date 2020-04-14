@@ -7,8 +7,10 @@
 import motion
 import uds
 
+import mysql.connector
 import threading
 import json
+#import RPi.GPIO as GPIO
 
 from flask import Flask, render_template, request
 from flask_socketio import SocketIO, emit
@@ -17,6 +19,18 @@ from flask_socketio import SocketIO, emit
 app = Flask(__name__)
 socketio = SocketIO(app, async_mode='threading')
 
+
+# Connect to MySQL database
+# Get JSON credentials to connect
+credentials = json.load(open('credentials.json', 'r'))
+
+# Use credentials to connect to database
+database = mysql.connector.connect(
+    host=credentials['host'],
+    user=credentials['user'],
+    passwd=credentials['password'],
+    database=credentials['database']
+)
 
 # Initialize the projectile motion modelling code
 y0 = 2 # The initial vertical launch position of the coilgun, relative to the distance sensor's line of "sight"
@@ -29,10 +43,35 @@ PIN_TRIG = 0 # GPIO pin connected to the sensor's pulse trigger
 distance_sensor = uds.DistanceSensor(PIN_ECHO, PIN_TRIG) # Initialize the distance sensor with these pins
 
 
+# Set up GPIO header board to connect circuits
+#GPIO.setmode(GPIO.BCM)
+#GPIO.setwarnings(False)
+
+# Set up GPIO input ports
+#GPIO.setup(PIN_ECHO, GPIO.IN)
+
+# Set up GPIO output ports
+#GPIO.setup(PIN_TRIG, GPIO.OUT)
+
+
 # Render base template for user interface
 @app.route('/', methods=['GET'])
 def index():
-    return render_template('coilgun.html')
+    # Select all records from the coilgun data database
+    select_statement = 'SELECT * FROM coilgun_data'
+
+    # Create a DB cursor to execute statements
+    cursor = database.cursor()
+
+    # Get saved projectile data profiles
+    cursor.execute(select_statement)
+    data_profiles = cursor.fetchall()
+    print(data_profiles)
+    # Close this database session
+    cursor.close()
+
+    # Send the data to the client with the user interface
+    return render_template('coilgun.html', data_profiles=data_profiles)
 
 
 # Get the predicted maximum travel distance for a given projectile and initial velocity
@@ -57,6 +96,41 @@ def get_distance():
     else:
         # If no form data is input, return a maximum distance of 0
         return json.dumps(0)
+
+
+@app.route('/save-data', methods=['POST'])
+def save_projectile_data():
+    # Get the user-entered form data to save
+    A = float(request.values['projectile_area'])
+    m = float(request.values['projectile_mass'])
+    rho = float(request.values['fluid_density'])
+    Cd = float(request.values['drag_constant'])
+    v0 = float(request.values['initial_velocity'])
+    name = request.values['name']
+
+    if A and m and rho and Cd and v0 and name:
+        # Try to insert new data or update an existing data profile if it already exists
+        insert_statement = 'INSERT INTO `coilgun_data` (`area`, `mass`, `density`, `constant`, `velocity`, `name`) VALUES (%s, %s, %s, %s, %s, %s)'
+        insert_statement += 'ON DUPLICATE KEY UPDATE `area`=VALUES(area), `mass`=VALUES(mass), `density`=VALUES(density), `constant`=VALUES(constant), `velocity`=VALUES(velocity);'
+
+        # Create a DB cursor to execute statements
+        cursor = database.cursor()
+
+        # Group the data to insert and inject it into the query
+        insert_data = (A, m, rho, Cd, v0, name)
+        cursor.execute(insert_statement, insert_data)
+
+        # Get the newly created record's id
+        id = cursor.lastrowid
+
+        # Wrap up the insert by committing and closing DB
+        database.commit()
+        cursor.close()
+
+        # Send new id to client
+        return json.dumps({'id': id})
+
+    return json.dumps({'id': None})
 
 
 # Send continuous stream of readings to the user interface via WebSockets

@@ -19,6 +19,12 @@ input::-webkit-inner-spin-button {
 input[type=number] {
   -moz-appearance: textfield;
 }
+input[type=text] {
+}
+
+button:focus {
+    outline: none;
+}
 
 .jumbotron {
     background: linear-gradient(45deg, #FF8A80, #FF1744);
@@ -138,8 +144,10 @@ input[type=number] {
     border-radius: 5px;
     padding: 5px 0;
     transition: 0.2s ease-in-out;
-    width: 90%;
     margin: 5px auto;
+}
+.buttons button:not(#submit) {
+    width: 90%;
 }
 .buttons button.cta, .buttons button:hover {
     color: white;
@@ -151,4 +159,22 @@ input[type=number] {
     background-color: lightgrey;
     border-color: lightgrey;
     box-shadow: none;
+    cursor: default;
+}
+
+#name {
+    display: flex;
+    flex-direction: row;
+    width: 90%;
+    margin: 0 5%;
+}
+#name input {
+    flex-grow: 1;
+    text-align: left;
+    padding: 0 10px;
+}
+#name button {
+    padding: 4px 6px;
+    flex-grow: 0;
+    margin: 2px;
 }

@@ -61,7 +61,7 @@ PIN_RECIEVER_2 = 0
 ir_pair_2 = ir_pair.IRPair(PIN_EMITTER_2, PIN_RECIEVER_2)
 
 # Set up GPIO header board to connect circuits
-GPIO.setmode(GPIO.BOARD)
+GPIO.setmode(GPIO.BCM)
 GPIO.setwarnings(False)
 
 # Set up GPIO input ports

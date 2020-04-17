@@ -1,3 +1,4 @@
+import RPi.GPIO as GPIO
 import time
 
 
@@ -18,7 +19,8 @@ class DistanceSensor:
         PIN_ECHO = self.PIN_ECHO
 
         # Give the sensor time to settle
-        time.sleep(0.1)
+        GPIO.output(PIN_TRIG, GPIO.LOW)
+        time.sleep(2)
 
         # Use the trigger pin to emit a 10 microsecond ultrasonic pulse
         GPIO.output(PIN_TRIG, GPIO.HIGH)
@@ -32,11 +34,13 @@ class DistanceSensor:
         start = time.time()
 
         # Wait for the echo pin to finish the HIGH singal, meaning the pulse signal has ended
-        while GPIO.input(PIN_TRIG) == GPIO.HIGH:
+        while GPIO.input(PIN_ECHO) == GPIO.HIGH:
             pass
 
         end = time.time()
 
         # Use the speed of sound to find how far the signal travelled to last for the time elapsed (eq 7)
-        time_elapsed = start - end
+        time_elapsed = end - start
         distance_reading = 171.5*time_elapsed
+
+        return distance_reading

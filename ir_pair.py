@@ -10,15 +10,15 @@ class IRPair:
 
 
     # Turn on the emitter LED
-    def on():
+    def on(self):
         GPIO.output(self.PIN_EMITTER, GPIO.HIGH)
 
 
     # Turn off the emitter LED
-    def off():
+    def off(self):
         GPIO.output(self.PIN_EMITTER, GPIO.LOW)
 
 
     # Check the reciever is no longer sensing light - GPIO input will read HIGH or "True"
-    def reciever_covered():
+    def reciever_covered(self):
         return GPIO.input(self.PIN_RECIEVER)

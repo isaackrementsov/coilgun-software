@@ -7,7 +7,7 @@
 import motion
 import uds
 import coil_circuit
-import ir_pair
+import led_pair
 
 import mysql.connector
 import threading
@@ -40,25 +40,23 @@ dt = 0.000001 # An approximation for the dt (an infinitesimally small time step)
 predictor = motion.MotionPredictor(y0, dt) # Initialize the motion predictor with these parameters
 
 # Initialize the distance sensor
-PIN_ECHO = 0 # GPIO pin connected to the sensor's echo sensor
-PIN_TRIG = 0 # GPIO pin connected to the sensor's pulse trigger
+PIN_ECHO = 25 # GPIO pin connected to the sensor's echo sensor
+PIN_TRIG = 24 # GPIO pin connected to the sensor's pulse trigger
 distance_sensor = uds.DistanceSensor(PIN_ECHO, PIN_TRIG) # Initialize the distance sensor with these pins
 
 # Initialize the coil circuit
-PIN_COIL_1 = 0
-PIN_COIL_2 = 0
+PIN_COIL_1 = 23
+PIN_COIL_2 = 18
 PULSE_TIME_1 = 0.1
 PULSE_TIME_2 = 0.01
 coils = coil_circuit.Coils(PIN_COIL_1, PIN_COIL_2, PULSE_TIME_1, PULSE_TIME_2)
 
 # Set up the emitter (LED) / reciever (photoresistor) pairs
-PIN_EMITTER_1 = 0
-PIN_RECIEVER_1 = 0
-ir_pair_1 = ir_pair.IRPair(PIN_EMITTER_1, PIN_RECIEVER_1)
+PIN_RECIEVER_1 = 6
+led_pair_1 = led_pair.LEDPair(PIN_RECIEVER_1)
 
-PIN_EMITTER_2 = 0
-PIN_RECIEVER_2 = 0
-ir_pair_2 = ir_pair.IRPair(PIN_EMITTER_2, PIN_RECIEVER_2)
+PIN_RECIEVER_2 = 5
+led_pair_2 = led_pair.LEDPair(PIN_RECIEVER_2)
 
 # Set up GPIO header board to connect circuits
 GPIO.setmode(GPIO.BCM)
@@ -73,8 +71,6 @@ GPIO.setup(PIN_RECIEVER_2, GPIO.IN)
 GPIO.setup(PIN_TRIG, GPIO.OUT)
 GPIO.setup(PIN_COIL_1, GPIO.OUT)
 GPIO.setup(PIN_COIL_2, GPIO.OUT)
-GPIO.setup(PIN_EMITTER_1, GPIO.OUT)
-GPIO.setup(PIN_EMITTER_2, GPIO.OUT)
 
 # Make sure UDS trigger is set to low by default
 GPIO.output(PIN_TRIG, GPIO.LOW)
@@ -172,16 +168,16 @@ def save_projectile_data():
 # Trigger the coilgun from the user interface
 @app.route('/trigger', methods=['POST'])
 def trigger_coils():
-    # Turn on the IR LEDs
-    ir_pair_1.on()
-    ir_pair_2.on()
+    # Turn on the photoresistors
+    led_pair_1.on()
+    led_pair_2.on()
 
     # Wait for the first coil to be pulsed
     pulsed = False
     while not pulsed:
 
         # Once the IR pair has been obstructed by the projectile, trigger the coil
-        if ir_pair_1.reciever_covered():
+        if led_pair_1.reciever_covered():
             # Pulse current through the coil briefly
             coils.pulse_coil(0)
             pulsed = True
@@ -190,7 +186,7 @@ def trigger_coils():
     pulsed = False
     while not pulsed:
 
-        if ir_pair_2.reciever_covered():
+        if led_pair_2.reciever_covered():
             # Pulse current through the second coil briefly
             coils.pulse_coil(1)
             pulsed = True

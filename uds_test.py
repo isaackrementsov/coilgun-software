@@ -6,7 +6,7 @@ from uds import DistanceSensor
 
 # Pins to connect to echo (input) and trigger (output)
 PIN_TRIG = 24
-PIN_ECHO = 23
+PIN_ECHO = 25
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setwarnings(False)
@@ -27,4 +27,3 @@ try:
 except KeyboardInterrupt:
     GPIO.cleanup()
     exit()
-        

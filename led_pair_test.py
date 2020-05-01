@@ -1,23 +1,21 @@
 # Code to test infrared emitter/reciever pairs
 
 import RPi.GPIO as GPIO
-from ir_pair import IRPair
+from led_pair import LEDPair
 
 # Pin to connect to emitter (output) and reciever (input)
-PIN_EMITTER = 23
-PIN_RECIEVER = 24
+PIN_RECIEVER = 6
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setwarnings(False)
 
-GPIO.setup(PIN_EMITTER, GPIO.OUT)
 GPIO.setup(PIN_RECIEVER, GPIO.IN)
 
-# Initialize a new IR pair
-pair = IRPair(PIN_EMITTER, PIN_RECIEVER)
+# Initialize a new LED pair
+pair = LEDPair(PIN_RECIEVER)
 
 try:
-    # Turn on emitter
+    # Turn on reciever
     pair.on()
 
     i = 0
@@ -28,6 +26,7 @@ try:
             print('Input #' + str(i))
 
 except KeyboardInterrupt:
+    # Clean exit on interrupt
     pair.off()
     GPIO.cleanup()
     exit()

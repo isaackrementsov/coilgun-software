@@ -4,7 +4,7 @@ import RPi.GPIO as GPIO
 from led_pair import LEDPair
 
 # Pin to connect to reciever (input) and reciever VCC (output)
-PIN_RECIEVER = 22
+PIN_RECIEVER = 27
 PIN_VCC_RECIEVER = 6
 
 GPIO.setmode(GPIO.BCM)

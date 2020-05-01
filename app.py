@@ -51,12 +51,14 @@ PULSE_TIME_1 = 0.1
 PULSE_TIME_2 = 0.01
 coils = coil_circuit.Coils(PIN_COIL_1, PIN_COIL_2, PULSE_TIME_1, PULSE_TIME_2)
 
-# Set up the emitter (LED) / reciever (photoresistor) pairs
+# Set up the photoresistor (reciever) half of the emitter-reciever pair
 PIN_RECIEVER_1 = 6
-led_pair_1 = led_pair.LEDPair(PIN_RECIEVER_1)
+PIN_RECIEVER_VCC_1 = 27
+led_pair_1 = led_pair.LEDPair(PIN_RECIEVER_1, PIN_RECIEVER_VCC_1)
 
 PIN_RECIEVER_2 = 5
-led_pair_2 = led_pair.LEDPair(PIN_RECIEVER_2)
+PIN_RECIEVER_VCC_2 = 22
+led_pair_2 = led_pair.LEDPair(PIN_RECIEVER_2, PIN_RECIEVER_VCC_2)
 
 # Set up GPIO header board to connect circuits
 GPIO.setmode(GPIO.BCM)
@@ -71,6 +73,8 @@ GPIO.setup(PIN_RECIEVER_2, GPIO.IN)
 GPIO.setup(PIN_TRIG, GPIO.OUT)
 GPIO.setup(PIN_COIL_1, GPIO.OUT)
 GPIO.setup(PIN_COIL_2, GPIO.OUT)
+GPIO.setup(PIN_RECIEVER_VCC_1, GPIO.OUT)
+GPIO.setup(PIN_RECIEVER_VCC_2, GPIO.OUT)
 
 # Make sure UDS trigger is set to low by default
 GPIO.output(PIN_TRIG, GPIO.LOW)

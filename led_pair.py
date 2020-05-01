@@ -21,4 +21,4 @@ class LEDPair:
 
     # Check the reciever is no longer sensing light - GPIO input will read HIGH or "True"
     def reciever_covered(self):
-        return not GPIO.input(self.PIN_RECIEVER)
+        return GPIO.input(self.PIN_RECIEVER)

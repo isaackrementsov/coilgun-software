@@ -3,16 +3,18 @@
 import RPi.GPIO as GPIO
 from led_pair import LEDPair
 
-# Pin to connect to emitter (output) and reciever (input)
-PIN_RECIEVER = 6
+# Pin to connect to reciever (input) and reciever VCC (output)
+PIN_RECIEVER = 22
+PIN_VCC_RECIEVER = 6
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setwarnings(False)
 
 GPIO.setup(PIN_RECIEVER, GPIO.IN)
+GPIO.setup(PIN_VCC_RECIEVER, GPIO.OUT)
 
 # Initialize a new LED pair
-pair = LEDPair(PIN_RECIEVER)
+pair = LEDPair(PIN_RECIEVER, PIN_VCC_RECIEVER)
 
 try:
     # Turn on reciever
@@ -21,7 +23,7 @@ try:
     i = 0
     # Continuously output reciever data
     while True:
-        if GPIO.input(PIN_RECIEVER):
+        if pair.reciever_covered():
             i += 1
             print('Input #' + str(i))
 
